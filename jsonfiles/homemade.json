@@ -1,0 +1,79 @@
+[
+  {
+    "index": 0,
+    "songName": "N12 Jazz",
+    "filePath": "\\music\\Dukesoul - Homemade (Album 2015)/01. Dukesoul - N12 Jazz.mp3",
+    "coverPath": "\\images\\Dukesoul Homemade.jpeg",
+    "duration": "7:11"
+  },
+  {
+    "index": 1,
+    "songName": "Homemade",
+    "filePath": "\\music\\Dukesoul - Homemade (Album 2015)/02. Dukesoul - Homemade.mp3",
+    "coverPath": "\\images\\Dukesoul Homemade.jpeg",
+    "duration": "6:5"
+  },
+  {
+    "index": 2,
+    "songName": "Never Give Up (I Believe)",
+    "filePath": "\\music\\Dukesoul - Homemade (Album 2015)/03. Dukesoul - Never Give Up (I Believe) (feat. Stephanie Cooke).mp3",
+    "coverPath": "\\images\\Dukesoul Homemade.jpeg",
+    "duration": "6:5"
+  },
+  {
+    "index": 3,
+    "songName": "Sax @ Hulana Park",
+    "filePath": "\\music\\Dukesoul - Homemade (Album 2015)/04. Dukesoul - Sax @ Hulana Park.mp3",
+    "coverPath": "\\images\\Dukesoul Homemade.jpeg",
+    "duration": "7:04"
+  },
+  {
+    "index": 4,
+    "songName": "Be Free",
+    "filePath": "\\music\\Dukesoul - Homemade (Album 2015)/05. Dukesoul - Be Free.mp3",
+    "coverPath": "\\images\\Dukesoul Homemade.jpeg",
+    "duration": "7:49"
+  },
+  {
+    "index": 5,
+    "songName": "House Is A Feeling",
+    "filePath": "\\music\\Dukesoul - Homemade (Album 2015)/06. Dukesoul - House Is A Feeling.mp3",
+    "coverPath": "\\images\\Dukesoul Homemade.jpeg",
+    "duration": "7:10"
+  },
+  {
+    "index": 6,
+    "songName": "Passive Mood",
+    "filePath": "\\music\\Dukesoul - Homemade (Album 2015)/07. Dukesoul - Passive Mood (feat. Highza).mp3",
+    "coverPath": "\\images\\Dukesoul Homemade.jpeg",
+    "duration": "6:41"
+  },
+  {
+    "index": 7,
+    "songName": "Ecstacy",
+    "filePath": "\\music\\Dukesoul - Homemade (Album 2015)/08. Dukesoul - Ecstacy.mp3",
+    "coverPath": "\\images\\Dukesoul Homemade.jpeg",
+    "duration": "7:00"
+  },
+  {
+    "index": 8,
+    "songName": "The Soul Meeting",
+    "filePath": "\\music\\Dukesoul - Homemade (Album 2015)/09. Dukesoul - The Soul Meeting.mp3",
+    "coverPath": "\\images\\Dukesoul Homemade.jpeg",
+    "duration": "7:11"
+  },
+  {
+    "index": 9,
+    "songName": "Jazz According To Us",
+    "filePath": "\\music\\Dukesoul - Homemade (Album 2015)/10. Dukesoul - Jazz According To Us.mp3",
+    "coverPath": "\\images\\Dukesoul Homemade.jpeg",
+    "duration": "7:13"
+  },
+  {
+    "index": 10,
+    "songName": "The Blue Note",
+    "filePath": "\\music\\Dukesoul - Homemade (Album 2015)/11. Dukesoul - The Blue Note.mp3",
+    "coverPath": "\\images\\Dukesoul Homemade.jpeg",
+    "duration": "7:11"
+  }
+]

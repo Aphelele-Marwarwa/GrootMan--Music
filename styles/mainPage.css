@@ -1,0 +1,257 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+
+body {
+    background-color: antiquewhite;
+    font-family: 'Varela Round', sans-serif;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+}
+
+nav {
+    font-family: 'Ubuntu', sans-serif;
+}
+
+nav ul {
+    display: flex;
+    align-items: center;
+    list-style-type: none;
+    height: 65px;
+    background-color: black;
+    color: white;
+}
+
+nav ul li {
+    padding: 0 12px;
+}
+ li a {
+    text-decoration: none; 
+    color: white; 
+    font-size: 1.2rem;
+}
+
+.brand img {
+    width: 44px;
+    padding: 0 8px;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    font-weight: bolder;
+    font-size: 1.3rem;
+}
+
+.container {
+    min-height: 72vh;
+    background-color: black;
+    color: white;
+    font-family: 'Varela Round', sans-serif;
+    display: flex;
+    margin: 23px auto;
+    width: 70%;
+    border-radius: 12px;
+    padding: 34px;
+    background-image: url('../images/For the vinyl curious_ Pioneer PL-30-K turntable.jpeg');
+}
+
+#bottom {
+    visibility: hidden; /* Change display: none; to visibility: hidden; */
+    position: sticky;
+    bottom: 0;
+    height: 130px;
+    background-color: black;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#bottom.visible {
+    visibility: visible; /* Add a class for showing the controls */
+}
+
+.icons {
+    margin-top: 14px;
+}
+
+.icons i {
+    cursor: pointer;
+    margin: 0 10px;
+}
+
+#myProgressBar {
+    width: 80vw;
+    cursor: pointer;
+    accent-color: grey; /* Set the background color of the progress bar to blue */
+}
+
+  #myProgressBar.playing {
+    accent-color:#1264b6; /* Change the accent color to blue when the 'playing' class is added */
+  }
+  
+
+.songItemContainer {
+    margin-top: 20px; /* Adjust the margin from the top */
+    width: 100%; /* Ensure the container spans the full width */
+    display: flex;
+    flex-direction: column; /* Arrange items vertically */
+    align-items: center; /* Center items horizontally */
+}
+
+.songItem {
+    height: 60px; /* Increase the height of each item */
+    width: 80%; /* Limit the width of each item to 80% of the container */
+    background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+    color: black;
+    margin: 10px 0; /* Adjust the margin between items */
+    display: flex;
+    justify-content: space-between; /* Distribute space between elements */
+    align-items: center; /* Center items vertically */
+    padding: 0 20px; /* Add padding for better spacing */
+    border-radius: 30px; /* Add border radius for rounded corners */
+}
+
+.songItem span {
+    flex-grow: 1; /* Allow the span to grow and fill the space */
+    text-align: center; /* Center-align text */
+}
+
+.songItem img {
+    width: 40px; /* Adjust the width of the image */
+    border-radius: 50%; /* Make the image round */
+}
+
+.songItem.playing {
+    background-color: #1264b6; /* or any other highlight color you prefer */
+  }
+
+  #masterPlay {
+	margin-top: 20px;
+}
+
+.songInfo {
+	margin-top: 20px;
+}
+
+.icons {
+	margin-top: 20px;
+}
+
+
+.timestamp {
+    margin: 0 23px;
+}
+
+.timestamp i {
+    cursor: pointer;
+}
+
+.songInfo {
+    position: absolute;
+    left: 10vw;
+    font-family: 'Varela Round', sans-serif;
+    display: flex;
+    align-items: center; /* Align items vertically */
+}
+
+.songInfo img, .songInfo span {
+    margin-right: 10px; /* Adjust the margin as needed */
+}
+
+#gif {
+    margin-left: 10px; /* Add left margin to the 'gif' image */
+}
+.songInfo1 {
+    position: absolute;
+    right: 10vw;
+    font-family: 'Varela Round', sans-serif;
+}
+.songInfo1 i {
+    cursor: pointer;
+    margin: 0 20px;  /* Added margin for better spacing between icons */
+}
+
+#shuffleIcon.active {
+    color: #1264b6;
+}
+
+@media only screen and (max-width: 1100px) {
+    body {
+        background-color: red;
+    }
+}
+
+.active {
+    color: blue;
+  }
+.volume {
+    accent-color: gray; /* Default color */
+  }
+  
+  .volume.changing {
+    accent-color: blue; /* Change color to blue when volume is being adjusted */
+  }
+  
+  #masterSongName {
+    transition: transform 0.3s ease; /* Add transition for slide effect */
+    transform: translateY(0); /* Initial position */
+}
+
+#masterSongName.hidden {
+    transform: translateY(-100%); /* Slide up to hide */
+}
+
+@media only screen and (max-width: 360px) {
+	/* Adjustments for Samsung A32 screen size */
+	body {
+		font-size: 13px;
+	}
+	nav ul {
+		flex-direction: column;
+		align-items: center;
+		height: auto;
+		padding: 10px 0;
+	}
+	nav li {
+		padding: 8px 0;
+	}
+	.container {
+		width: 90%;
+		padding: 15px;
+	}
+	.songItem {
+		flex-direction: column;
+		align-items: center;
+		padding: 8px;
+	}
+	.songItem img {
+		width: 25px;
+	}
+	#bottom {
+		flex-direction: column;
+		align-items: center;
+		padding: 10px;
+	}
+	.icons i {
+		margin: 8px 0;
+	}
+	.songInfo {
+		text-align: center;
+	}
+	.songInfo img {
+		width: 25px;
+	}
+	#masterSongName {
+		font-size: 15px;
+	}
+}
+
+
+
+
+  

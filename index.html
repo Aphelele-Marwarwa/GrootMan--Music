@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>GrootMan Music</title>
+    <link rel="icon" href="/images/icons8-musical-40.png" type="image/x-icon">
+    <link rel="stylesheet" href="/styles/index.css">
+</head>
+
+<body>
+    <nav>
+        <ul>
+            <li class="brand"><img src="/images/icons8-musical-40.png" alt="GrootMan Music">GrootMan Music</li>
+            <li class="brand"><a href="/index.html">Home</a></li>
+         <!--  <li class="brand"><a href="pages\mainPage.html">for now</a></li>--> 
+            <li class="brand"><a href="/pages/aboutPage.html">About</a></li>
+        </ul>
+    </nav>
+
+    <div class="slideshow-container">
+        <div class="mySlides fade">
+            <a href="/pages/mainPage.html?album=homemade">
+                <img src="/images/Dukesoul Homemade.jpeg" alt="Dukesoul" id="slide0">
+            </a>
+            <div class="text">Dukesoul Homemade</div>
+        </div>
+        <div class="mySlides fade">
+            <a href="/pages/mainPage.html?album=chymamusique">
+                <img src="/images/Chymamusique.jpg" alt="Chymamusique" id="slide1">
+            </a>
+            <div class="text">Chymamusique Sax On Fleek</div>
+        </div>
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
+    </div>
+    <br>
+    <div class="bottom"></div>
+    <script src="/scripts/homepage.js"></script>
+    <script src="/scripts/mainPage.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,37 @@
+[
+    {
+        "index": 0,
+        "songName": "01 Gift Of Life",
+        "filePath": "\\music\\Chymamusique - Sax On Fleek\\Chymamusique ft Teejay & Fedesax - Sax On Fleek - 01 Gift Of Life.mp3",
+        "coverPath": "\\images\\Chymamusique.jpg",
+        "duration": "6:32"
+    },
+    {
+        "index": 1,
+        "songName": "02 Back To Basics (Soulful Edit)",
+        "filePath": "\\music\\Chymamusique - Sax On Fleek\\Chymamusique & Sculpturedmusic - Sax On Fleek - 02 Back To Basics (Soulful Edit).mp3",
+        "coverPath": "\\images\\Chymamusique.jpg",
+        "duration": "6:31"
+    },
+    {
+        "index": 2,
+        "songName": "03 Soulful Breeze",
+        "filePath": "\\music\\Chymamusique - Sax On Fleek\\Chymamusique ft Mo T - Sax On Fleek - 03 Soulful Breeze.mp3",
+        "coverPath": "\\images\\Chymamusique.jpg",
+        "duration": "6:37"
+    },
+    {
+        "index": 3,
+        "songName": "04 God Is Good",
+        "filePath": "\\music\\Chymamusique - Sax On Fleek\\Chymamusique ft Deep Cartel - Sax On Fleek - 04 God Is Good.mp3",
+        "coverPath": "\\images\\Chymamusique.jpg",
+        "duration": "6:12"
+    },
+    {
+        "index": 4,
+        "songName": "05 Deeper & Deeper",
+        "filePath": "\\music\\Chymamusique - Sax On Fleek\\Chymamusique - Sax On Fleek - 05 Deeper & Deeper.mp3",
+        "coverPath": "\\images\\Chymamusique.jpg",
+        "duration": "8:25"
+    }
+]
