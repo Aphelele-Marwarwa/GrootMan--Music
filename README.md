@@ -18,7 +18,7 @@
 
 ### Challenges:
 
-- Deploying the application on the internet and ensuring proper functionality (still working on it :( )
+- Deploying the application on the internet and ensuring proper functionality (still working on it :( ) # but here is the link to it https://6ad0d5b6.grootman--music.pages.dev
 
 
 
