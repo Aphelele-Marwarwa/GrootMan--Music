@@ -385,18 +385,7 @@ function updateSongItemClass(currentIndex) {
   
 
 function setupControlEventListeners() {
-    const masterPlayButton = document.getElementById('masterPlay');
-    const previousButton = document.getElementById('previous');
-    const nextButton = document.getElementById('next');
-    const progressBar = document.getElementById('myProgressBar')
-    const volumeControl = document.getElementById('volumeControl');
-    const shuffleIcon = document.getElementById('shuffleIcon');
-    const repeatIcon = document.getElementById('repeatIcon');
-    const masterSongName = document.getElementById('masterSongName');
-    const elapsedTime = document.getElementById('elapsedTime');
-    const durationTime = document.getElementById('durationTime');
-    const gif = document.getElementById('gif');
-    const volumeIcon = document.getElementById('volumeIcon');
+   
 
     updateMasterPlayIcon();
    
