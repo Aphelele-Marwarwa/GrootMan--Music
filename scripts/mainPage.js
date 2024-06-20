@@ -6,9 +6,23 @@ let shuffleMode = false;
 let repeatMode = 'none';
 let savedTime = 0;
 let originalSongsOrder = [];
+const loadingIndicator = document.getElementById('loading-indicator');
+const masterPlayButton = document.getElementById('masterPlay');
+const previousButton = document.getElementById('previous');
+const nextButton = document.getElementById('next');
+const progressBar = document.getElementById('myProgressBar')
+const volumeControl = document.getElementById('volumeControl');
+const shuffleIcon = document.getElementById('shuffleIcon');
+const repeatIcon = document.getElementById('repeatIcon');
+const masterSongName = document.getElementById('masterSongName');
+const elapsedTime = document.getElementById('elapsedTime');
+const durationTime = document.getElementById('durationTime');
+const gif = document.getElementById('gif');
+const volumeIcon = document.getElementById('volumeIcon');
 
 
 function fetchAndCreateSongItems(albumName) {
+    showLoadingIndicator();
     const jsonFileName = `/jsonfiles/${albumName.toLowerCase().replace("'", "").replace(/\s+/g, '')}.json`; // Update the file path to be relative
     fetch(jsonFileName)
         .then(response => {
@@ -22,6 +36,8 @@ function fetchAndCreateSongItems(albumName) {
             songs = data.map((song, index) => ({ ...song, index })); // Add index property to each song
             createSongItems();
             setupControlEventListeners();
+            hideLoadingIndicator();
+
         })
         .catch(error => console.error(`Error fetching ${jsonFileName}:`, error));
     hideBottomControls();
@@ -41,7 +57,19 @@ window.addEventListener('load', () => {
     }
 });
 
+// Show the loading indicator when the song is loading
+function showLoadingIndicator() {
+    if (loadingIndicator) {
+        loadingIndicator.classList.add('visible');
+    }
+}
 
+// Hide the loading indicator when the song is loaded
+function hideLoadingIndicator() {
+    if (loadingIndicator) {
+        loadingIndicator.classList.remove('visible');
+    }
+}
 
 
 function createSongItems() {
@@ -72,10 +100,13 @@ function playOrPauseSong(song, songItem) {
             gif.style.display = 'none';
             hideBottomControls();
         } else {
+          
             playAudio();
             gif.style.display = 'block';
             updateSongItemClass(currentSongIndex);
             updateProgressAndTime(); // Update progress bar and elapsed time
+            showLoadingIndicator();
+
         }
     } else {
         if (currentAudio) {
@@ -84,6 +115,8 @@ function playOrPauseSong(song, songItem) {
         currentAudio = new Audio(song.filePath);
         currentAudio.preload = 'auto';
         currentAudio.addEventListener('loadedmetadata', () => {
+            hideLoadingIndicator();
+
             if (isPlaying) {
                 // If the song is currently playing, resume from the saved time
                 currentAudio.currentTime = savedTime;
@@ -152,9 +185,6 @@ function updateProgressAndTime() {
     const durationTime = document.getElementById('durationTime');
     durationTime.textContent = durationFormatted;
 }
-
-
-
 
 function playAudio() {
     currentAudio.play();
@@ -249,6 +279,7 @@ function loadAndPlaySong(song, index) {
       durationTime.textContent = durationFormatted;
     });
     currentAudio.addEventListener('ended', function() {
+        console.log('Song ended');
       isPlaying = false;
       updateMasterPlayIcon();
       playNextSong();
@@ -349,6 +380,8 @@ function updateSongItemClass(currentIndex) {
     });
 }
 
+
+
   
 
 function setupControlEventListeners() {
@@ -369,64 +402,83 @@ function setupControlEventListeners() {
    
 
 
-    masterPlayButton.addEventListener('click', function () {
-        if (songs.length > 0) {
+    if (masterPlayButton) {
+        masterPlayButton.addEventListener('click', function () {
+          if (songs.length > 0) {
             if (isPlaying) {
-                pauseAudio();
+              pauseAudio();
             } else {
-                playAudio();
+              playAudio();
             }
             updateMasterPlayIcon();
-        }
-    }); 
-    nextButton.addEventListener('click', () => {
-        playNextSong();
-    });
+          }
+        });
+      }
+      if (nextButton) {
+        nextButton.addEventListener('click', playNextSong);
+      }
+    
 
-    previousButton.addEventListener('click', playPreviousSong);
-
-    shuffleIcon.addEventListener('click', toggleShuffleMode);
-
-    repeatIcon.addEventListener('click', toggleRepeatMode);
+    if (previousButton) {
+        previousButton.addEventListener('click', playPreviousSong);
+      }
+    
+    
+      if (shuffleIcon) {
+        shuffleIcon.addEventListener('click', toggleShuffleMode);
+      }
+    
+      if (repeatIcon) {
+        repeatIcon.addEventListener('click', toggleRepeatMode);
+      }
+    
 
     volumeIcon.addEventListener('click', toggleMute)
 
-    progressBar.addEventListener('input', () => {
-        const seekTime = (progressBar.value / 100) * currentAudio.duration;
-        currentAudio.currentTime = seekTime;
-    });
-
-    volumeControl.addEventListener('input', () => {
+    if (progressBar) {
+        progressBar.addEventListener('input', function () {
+          const seekTime = (progressBar.value / 100) * currentAudio.duration;
+          currentAudio.currentTime = seekTime;
+        });
+      }
+    
+      if (volumeControl) {
+        volumeControl.addEventListener('input', function () {
           volumeControl.classList.add('changing');
-
-        currentAudio.volume = volumeControl.value / 100;
-        updateVolumeIcon(volumeIcon, volumeControl.value);
-    });
-    volumeControl.addEventListener('mouseup', () => {
-        volumeControl.classList.remove('changing');
-      });
-      
+          currentAudio.volume = volumeControl.value / 100;
+          updateVolumeIcon(volumeIcon, volumeControl.value);
+        });
+        volumeControl.addEventListener('mouseup', function () {
+          volumeControl.classList.remove('changing');
+        });
+      }
    
 
-    currentAudio.addEventListener('loadedmetadata', () => {
-        const durationFormatted = formatTime(currentAudio.duration);
-        durationTime.textContent = durationFormatted;
-    });
+      if (currentAudio) {
+        currentAudio.addEventListener('loadedmetadata', function () {
+          const durationFormatted = formatTime(currentAudio.duration);
+          durationTime.textContent = durationFormatted;
+        });
+    
+        currentAudio.addEventListener('timeupdate', function () {
+          const currentTime = currentAudio.currentTime;
+          const duration = currentAudio.duration;
+          const elapsed = formatTime(currentTime);
+          const durationFormatted = formatTime(duration);
+          progressBar.value = (currentTime / duration) * 100;
+          elapsedTime.textContent = elapsed;
+          durationTime.textContent = durationFormatted;
+        });
+    
+        currentAudio.addEventListener('ended', function () {
+          isPlaying = false;
+          updateMasterPlayIcon();
+          playNextSong();
+        });
+      }
+ }
+    
 
-    currentAudio.addEventListener('timeupdate', () => {
-        const currentTime = currentAudio.currentTime;
-        const duration = currentAudio.duration;
-        const elapsed = formatTime(currentTime);
-        const durationFormatted = formatTime(duration);
-
-        // Update the progress bar value
-        progressBar.value = (currentTime / duration) * 100;
-
-        // Update the elapsed time and duration display
-        elapsedTime.textContent = elapsed;
-        durationTime.textContent = durationFormatted;
-    });
-}
 
 // Function to update volume icon based on volume level
 function updateVolumeIcon(volumeIcon, volumeLevel) {
@@ -462,8 +514,6 @@ function formatTime(time) {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
-// Define a variable to track if the initial play action has occurred
-let initialPlay = true;
 
 // Call the function to fetch and create song items when the page loads
 window.addEventListener('load', () => {
