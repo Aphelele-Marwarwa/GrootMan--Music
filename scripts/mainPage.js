@@ -1,16 +1,24 @@
+/**
+ * GrootMan Music Player - Enhanced version
+ * Simple improvements to the original code structure
+ */
+
+// Player state variables
 let currentAudio = null;
 let isPlaying = false;
-let currentSongIndex = null; // Track the index of the currently playing song
+let currentSongIndex = null; 
 let songs = [];
 let shuffleMode = false;
 let repeatMode = 'none';
 let savedTime = 0;
 let originalSongsOrder = [];
+
+// Cache DOM elements
 const loadingIndicator = document.getElementById('loading-indicator');
 const masterPlayButton = document.getElementById('masterPlay');
 const previousButton = document.getElementById('previous');
 const nextButton = document.getElementById('next');
-const progressBar = document.getElementById('myProgressBar')
+const progressBar = document.getElementById('myProgressBar');
 const volumeControl = document.getElementById('volumeControl');
 const shuffleIcon = document.getElementById('shuffleIcon');
 const repeatIcon = document.getElementById('repeatIcon');
@@ -19,11 +27,17 @@ const elapsedTime = document.getElementById('elapsedTime');
 const durationTime = document.getElementById('durationTime');
 const gif = document.getElementById('gif');
 const volumeIcon = document.getElementById('volumeIcon');
+const bottomControls = document.getElementById('bottom');
 
-
+/**
+ * Fetch songs and create song items based on album name
+ */
 function fetchAndCreateSongItems(albumName) {
     showLoadingIndicator();
-    const jsonFileName = `/jsonfiles/${albumName.toLowerCase().replace("'", "").replace(/\s+/g, '')}.json`; // Update the file path to be relative
+    const jsonFileName = albumName ? 
+        `/jsonfiles/${albumName.toLowerCase().replace(/['\s]+/g, '')}.json` : 
+        '/jsonfiles/default.json';
+    
     fetch(jsonFileName)
         .then(response => {
             if (!response.ok) {
@@ -32,178 +46,226 @@ function fetchAndCreateSongItems(albumName) {
             return response.json();
         })
         .then(data => {
-            originalSongsOrder = data; // Store original order
+            originalSongsOrder = [...data]; // Store original order
             songs = data.map((song, index) => ({ ...song, index })); // Add index property to each song
             createSongItems();
             setupControlEventListeners();
             hideLoadingIndicator();
-
         })
-        .catch(error => console.error(`Error fetching ${jsonFileName}:`, error));
+        .catch(error => {
+            console.error(`Error fetching ${jsonFileName}:`, error);
+            hideLoadingIndicator();
+            
+            // Show error message to user
+            const songContainer = document.querySelector('.songItemContainer');
+            if (songContainer) {
+                songContainer.innerHTML = `
+                    <div class="error-message">
+                        <p>Failed to load songs. Please try again later.</p>
+                    </div>
+                `;
+            }
+        });
     hideBottomControls();
 }
 
-// Function to extract album name from URL query parameter
+/**
+ * Extract album name from URL query parameter
+ */
 function getAlbumNameFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('album');
 }
 
-// Example usage when the page loads
-window.addEventListener('load', () => {
-    const albumName = getAlbumNameFromURL();
-    if (albumName) {
-        fetchAndCreateSongItems(albumName);
-    }
-});
-
-// Show the loading indicator when the song is loading
+/**
+ * UI Loading indicator functions
+ */
 function showLoadingIndicator() {
     if (loadingIndicator) {
         loadingIndicator.classList.add('visible');
     }
 }
 
-// Hide the loading indicator when the song is loaded
 function hideLoadingIndicator() {
     if (loadingIndicator) {
         loadingIndicator.classList.remove('visible');
     }
 }
 
+/**
+ * Bottom controls visibility functions
+ */
+function showBottomControls() {
+    if (bottomControls) {
+        bottomControls.classList.add('visible');
+        bottomControls.classList.remove('hidden');
+    }
+}
 
+function hideBottomControls() {
+    if (bottomControls) {
+        bottomControls.classList.remove('visible');
+        bottomControls.classList.add('hidden');
+    }
+}
+
+/**
+ * Create song items in the UI
+ */
 function createSongItems() {
     const songContainer = document.querySelector('.songItemContainer');
+    if (!songContainer) return;
+    
+    // Clear existing content
+    songContainer.innerHTML = '';
+    
     songs.forEach((song, index) => {
         const songItem = document.createElement('div');
         songItem.classList.add('songItem');
-        songItem.dataset.index = index; // Set the dataset index attribute
-        const songName = document.createElement('span');
-        songName.textContent = `${song.songName}`;
+        songItem.dataset.index = index;
+        
         const coverImage = document.createElement('img');
         coverImage.src = song.coverPath;
         coverImage.alt = song.songName;
         coverImage.width = 40;
-        songName.addEventListener('click', () => {
+        coverImage.onerror = () => {
+            // Fallback image if cover fails to load
+            coverImage.src = '/images/default-cover.png';
+        };
+        
+        const songName = document.createElement('span');
+        songName.textContent = song.songName;
+        songName.title = song.songName; // Add tooltip
+        
+        // Add click event to play song
+        songItem.addEventListener('click', () => {
             playOrPauseSong(song, songItem);
         });
+        
         songItem.appendChild(coverImage);
         songItem.appendChild(songName);
         songContainer.appendChild(songItem);
     });
 }
 
+/**
+ * Play or pause a song
+ */
 function playOrPauseSong(song, songItem) {
+    // Check if the same song is already loaded
     if (currentAudio && currentAudio.src === song.filePath) {
         if (isPlaying) {
             pauseAudio();
             gif.style.display = 'none';
-            hideBottomControls();
         } else {
-          
             playAudio();
             gif.style.display = 'block';
             updateSongItemClass(currentSongIndex);
-            updateProgressAndTime(); // Update progress bar and elapsed time
-            showLoadingIndicator();
-
+            updateProgressAndTime();
         }
     } else {
+        // Load a new song
         if (currentAudio) {
             pauseAudio();
+            // Save current time for potential resume
+            savedTime = currentAudio.currentTime;
         }
+        
+        showLoadingIndicator();
         currentAudio = new Audio(song.filePath);
         currentAudio.preload = 'auto';
+        
+        // Set volume from existing control
+        if (volumeControl) {
+            currentAudio.volume = volumeControl.value / 100;
+        }
+        
         currentAudio.addEventListener('loadedmetadata', () => {
             hideLoadingIndicator();
-
-            if (isPlaying) {
-                // If the song is currently playing, resume from the saved time
-                currentAudio.currentTime = savedTime;
-                playAudio();
-                gif.style.display = 'block';
-            } else {
-                // If the song is paused, start playing from the beginning
-                playAudio();
-                gif.style.display = 'none';
-            }
+            playAudio();
+            gif.style.display = 'block';
             showBottomControls();
+            
             currentSongIndex = song.index;
             updateSongItemClass(currentSongIndex);
-            masterSongName.textContent = song.songName; // Set masterSongName to current song name
-
+            masterSongName.textContent = song.songName;
+            
             // Update duration and elapsed time elements
-            const durationFormatted = formatTime(currentAudio.duration);
-            durationTime.textContent = durationFormatted;
-            elapsedTime.textContent = '0:00'; // Reset elapsed time to 0 when loading a new song
-           
-            updateProgressAndTime(); // Update progress bar and elapsed time
-
+            updateDurationDisplay(currentAudio.duration);
+            elapsedTime.textContent = '0:00';
+            updateProgressAndTime();
+            
             // Update the cover image in songInfo
             const songInfoCoverImage = document.querySelector('.songInfo img');
-            songInfoCoverImage.src = song.coverPath;
+            if (songInfoCoverImage) {
+                songInfoCoverImage.src = song.coverPath;
+            }
         });
-
-        // Update the isPlaying flag
-        isPlaying = true;
-        updateMasterPlayIcon();
+        
+        currentAudio.addEventListener('error', () => {
+            hideLoadingIndicator();
+            alert(`Failed to load the song: ${song.songName}`);
+        });
+        
+        // Set time update listener for progress bar
+        currentAudio.addEventListener('timeupdate', updateProgressAndTime);
+        
+        // Set ended listener to play next song
+        currentAudio.addEventListener('ended', () => {
+            isPlaying = false;
+            updateMasterPlayIcon();
+            playNextSong();
+        });
     }
-      
-    // Update the progress bar value during play/pause
-    currentAudio.addEventListener('timeupdate', () => {
-        updateProgressAndTime(); // Update progress bar and elapsed time
-    });
 }
 
-
-function showBottomControls() {
-    const bottomControls = document.getElementById('bottom');
-    bottomControls.classList.add('visible');
-}
-
-function hideBottomControls() {
-    const bottomControls = document.getElementById('bottom');
-    bottomControls.classList.remove('visible');
-}
-
-   
-// Function to update the progress bar and elapsed time
-function updateProgressAndTime() {
-    const currentTime = currentAudio.currentTime;
-    const duration = currentAudio.duration;
-    const elapsed = formatTime(currentTime);
-    const durationFormatted = formatTime(duration);
-
-    // Update the progress bar value
-    const progressBar = document.getElementById('myProgressBar');
-    progressBar.value = (currentTime / duration) * 100;
-
-    // Update the elapsed time and duration display
-    const elapsedTime = document.getElementById('elapsedTime');
-    elapsedTime.textContent = elapsed;
-
-    const durationTime = document.getElementById('durationTime');
-    durationTime.textContent = durationFormatted;
-}
-
+/**
+ * Audio control functions
+ */
 function playAudio() {
-    currentAudio.play();
+    if (!currentAudio) return;
+    
+    const playPromise = currentAudio.play();
+    
+    // Handle play promise to avoid uncaught promise rejection
+    if (playPromise !== undefined) {
+        playPromise.catch(error => {
+            console.error('Play error:', error);
+            // Auto-retry play on user interaction error
+            document.addEventListener('click', function retryPlay() {
+                currentAudio.play();
+                document.removeEventListener('click', retryPlay);
+            }, { once: true });
+        });
+    }
+    
     isPlaying = true;
     gif.style.display = 'block';
-
+    updateMasterPlayIcon();
 }
 
 function pauseAudio() {
+    if (!currentAudio) return;
+    
     currentAudio.pause();
     isPlaying = false;
     gif.style.display = 'none';
-    
+    updateMasterPlayIcon();
 }
 
+/**
+ * Play next song based on current modes
+ */
 function playNextSong() {
+    if (!songs.length) return;
+    
     let nextIndex;
+    
     if (shuffleMode) {
-        nextIndex = Math.floor(Math.random() * songs.length);
+        // Generate random index (avoid current song if possible)
+        do {
+            nextIndex = Math.floor(Math.random() * songs.length);
+        } while (songs.length > 1 && nextIndex === currentSongIndex);
     } else {
         switch (repeatMode) {
             case 'none':
@@ -220,17 +282,30 @@ function playNextSong() {
                 break;
         }
     }
+    
     const nextSong = songs[nextIndex];
     loadAndPlaySong(nextSong, nextIndex);
-    updateProgressBar(0, 1);
-    isPlaying = true;
-    updateMasterPlayIcon();
 }
 
+/**
+ * Play previous song based on current modes
+ */
 function playPreviousSong() {
+    if (!songs.length) return;
+    
+    // If we're more than 3 seconds into a song, restart it instead
+    if (currentAudio && currentAudio.currentTime > 3) {
+        currentAudio.currentTime = 0;
+        return;
+    }
+    
     let previousIndex;
+    
     if (shuffleMode) {
-        previousIndex = Math.floor(Math.random() * songs.length);
+        // Generate random index (avoid current song if possible)
+        do {
+            previousIndex = Math.floor(Math.random() * songs.length);
+        } while (songs.length > 1 && previousIndex === currentSongIndex);
     } else {
         switch (repeatMode) {
             case 'none':
@@ -247,269 +322,390 @@ function playPreviousSong() {
                 break;
         }
     }
+    
     const previousSong = songs[previousIndex];
     loadAndPlaySong(previousSong, previousIndex);
-    updateProgressBar(0, 1);
-    isPlaying = true;
-    updateMasterPlayIcon();
 }
 
-
-
+/**
+ * Load and play a song
+ */
 function loadAndPlaySong(song, index) {
+    if (!song) return;
+    
     if (currentAudio) {
-      currentAudio.pause();
+        currentAudio.pause();
+        // Remove old event listeners to prevent memory leaks
+        currentAudio.onloadedmetadata = null;
+        currentAudio.ontimeupdate = null;
+        currentAudio.onended = null;
+        currentAudio.onerror = null;
     }
+    
+    showLoadingIndicator();
     currentAudio = new Audio(song.filePath);
     currentAudio.preload = 'auto';
+    
+    // Set volume
+    if (volumeControl) {
+        currentAudio.volume = volumeControl.value / 100;
+    }
+    
     currentAudio.addEventListener('loadedmetadata', function() {
-      currentAudio.play();
-      isPlaying = true;
-      currentSongIndex = index;
-      updateSongItemClass(index);
-      updateDurationTime(currentAudio.duration);
+        hideLoadingIndicator();
+        currentAudio.play()
+            .catch(error => {
+                console.error('Play error:', error);
+            });
+        
+        isPlaying = true;
+        currentSongIndex = index;
+        updateSongItemClass(index);
+        updateDurationDisplay(currentAudio.duration);
+        masterSongName.textContent = song.songName;
+        
+        // Update the cover image in songInfo
+        const songInfoCoverImage = document.querySelector('.songInfo img');
+        if (songInfoCoverImage) {
+            songInfoCoverImage.src = song.coverPath;
+        }
+        
+        // Show gif indicator
+        gif.style.display = 'block';
+        updateMasterPlayIcon();
     });
+    
     currentAudio.addEventListener('timeupdate', function() {
-      updateProgressBar(currentAudio.currentTime, currentAudio.duration);
-      const currentTime = currentAudio.currentTime;
-      const elapsed = formatTime(currentTime);
-      elapsedTime.textContent = elapsed;
-      masterSongName.textContent = song.songName;
-      const durationFormatted = formatTime(currentAudio.duration);
-      durationTime.textContent = durationFormatted;
+        updateProgressBar(currentAudio.currentTime, currentAudio.duration);
+        const elapsed = formatTime(currentAudio.currentTime);
+        elapsedTime.textContent = elapsed;
     });
+    
     currentAudio.addEventListener('ended', function() {
-        console.log('Song ended');
-      isPlaying = false;
-      updateMasterPlayIcon();
-      playNextSong();
+        isPlaying = false;
+        updateMasterPlayIcon();
+        playNextSong();
     });
-  }
-  
-  
+    
+    currentAudio.addEventListener('error', function() {
+        hideLoadingIndicator();
+        alert(`Failed to load song: ${song.songName}`);
+    });
+}
 
+/**
+ * Update UI elements
+ */
 function updateProgressBar(currentTime, duration) {
-    const progressBar = document.getElementById('myProgressBar');
+    if (!progressBar || !duration) return;
     progressBar.value = (currentTime / duration) * 100;
 }
 
-function toggleShuffleMode() {
-    shuffleMode = !shuffleMode;
-    const shuffleIcon = document.getElementById('shuffleIcon');
-    if (shuffleMode) {
-        shuffleSongs();
-        shuffleIcon.classList.add('active');
-        // Find the index of the current song in the shuffled array
-        const currentSongFilePath = currentAudio ? currentAudio.src : null;
-        currentSongIndex = currentSongFilePath ? songs.findIndex(song => song.filePath === currentSongFilePath) : null;
-        updateSongItemClass(currentSongIndex);
-    } else {
-        songs = [...originalSongsOrder]; // Restore original order
-        shuffleIcon.classList.remove('active');
-        currentSongIndex = originalSongsOrder.findIndex(song => song.filePath === currentAudio.src);
-        updateSongItemClass(currentSongIndex);
+function updateProgressAndTime() {
+    if (!currentAudio) return;
+    
+    const currentTime = currentAudio.currentTime;
+    const duration = currentAudio.duration;
+    
+    if (isNaN(duration)) return;
+    
+    // Update progress bar
+    updateProgressBar(currentTime, duration);
+    
+    // Update time displays
+    const elapsed = formatTime(currentTime);
+    elapsedTime.textContent = elapsed;
+    
+    // Only update duration if not already set
+    if (!durationTime.textContent || durationTime.textContent === "0:00") {
+        updateDurationDisplay(duration);
     }
 }
 
-
-function shuffleSongs() {
-    // Shuffle songs array
-    for (let i = songs.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [songs[i], songs[j]] = [songs[j], songs[i]];
-    }
-
-    // Shuffle corresponding UI elements
-    const songContainer = document.querySelector('.songItemContainer');
-    const songItems = Array.from(songContainer.querySelectorAll('.songItem'));
-    songItems.forEach(item => {
-        songContainer.appendChild(item);
-    });
+function updateDurationDisplay(duration) {
+    if (!durationTime || isNaN(duration)) return;
+    const durationFormatted = formatTime(duration);
+    durationTime.textContent = durationFormatted;
 }
 
-
-function toggleRepeatMode() {
-    const repeatIcon = document.getElementById('repeatIcon');
-    switch (repeatMode) {
-      case 'none':
-        repeatMode = 'one';
-        repeatIcon.classList.remove('fa-repeat');
-        repeatIcon.classList.add('fa-redo');
-        repeatIcon.classList.add('active');
-        break;
-      case 'one':
-        repeatMode = 'all';
-        repeatIcon.classList.remove('fa-redo');
-        repeatIcon.classList.add('fa-reply-all');
-        repeatIcon.classList.add('active');
-        break;
-      case 'all':
-        repeatMode = 'none';
-        repeatIcon.classList.remove('fa-reply-all');
-        repeatIcon.classList.remove('fa-redo');
-        repeatIcon.classList.add('fa-repeat'); // Add the initial repeat icon class
-        repeatIcon.classList.remove('active');
-        break;
-      default:
-        break;
-    }
-  }
-
-// Define updateMasterPlayIcon and updateSongItemClass functions globally
 function updateMasterPlayIcon() {
-    const masterPlayButton = document.getElementById('masterPlay');
+    if (!masterPlayButton) return;
+    
     if (isPlaying) {
-        masterPlayButton.classList.remove('fa-play-circle');
+        masterPlayButton.classList.remove('fa-play-circle', 'fa-circle-play');
         masterPlayButton.classList.add('fa-pause-circle');
     } else {
         masterPlayButton.classList.remove('fa-pause-circle');
-        masterPlayButton.classList.add('fa-play-circle');
-        
+        masterPlayButton.classList.add('fa-play-circle', 'fa-circle-play');
     }
 }
 
 function updateSongItemClass(currentIndex) {
     const songItems = document.querySelectorAll('.songItem');
+    
     songItems.forEach((songItem, i) => {
-        if (shuffleMode) {
-            // If shuffle mode is active, highlight the currently playing song item
-            songItem.classList.toggle('playing', i === currentIndex);
+        if (i === currentIndex && isPlaying) {
+            songItem.classList.add('playing');
         } else {
-            songItem.classList.toggle('playing', i === currentIndex && isPlaying);
+            songItem.classList.remove('playing');
         }
     });
 }
 
-
-
-  
-
-function setupControlEventListeners() {
-   
-
-    updateMasterPlayIcon();
-   
-
-
-    if (masterPlayButton) {
-        masterPlayButton.addEventListener('click', function () {
-          if (songs.length > 0) {
-            if (isPlaying) {
-              pauseAudio();
-            } else {
-              playAudio();
-            }
-            updateMasterPlayIcon();
-          }
-        });
-      }
-      if (nextButton) {
-        nextButton.addEventListener('click', playNextSong);
-      }
+/**
+ * Toggle shuffle mode
+ */
+function toggleShuffleMode() {
+    shuffleMode = !shuffleMode;
     
-
-    if (previousButton) {
-        previousButton.addEventListener('click', playPreviousSong);
-      }
+    if (!shuffleIcon) return;
     
-    
-      if (shuffleIcon) {
-        shuffleIcon.addEventListener('click', toggleShuffleMode);
-      }
-    
-      if (repeatIcon) {
-        repeatIcon.addEventListener('click', toggleRepeatMode);
-      }
-    
-
-    volumeIcon.addEventListener('click', toggleMute)
-
-    if (progressBar) {
-        progressBar.addEventListener('input', function () {
-          const seekTime = (progressBar.value / 100) * currentAudio.duration;
-          currentAudio.currentTime = seekTime;
-        });
-      }
-    
-      if (volumeControl) {
-        volumeControl.addEventListener('input', function () {
-          volumeControl.classList.add('changing');
-          currentAudio.volume = volumeControl.value / 100;
-          updateVolumeIcon(volumeIcon, volumeControl.value);
-        });
-        volumeControl.addEventListener('mouseup', function () {
-          volumeControl.classList.remove('changing');
-        });
-      }
-   
-
-      if (currentAudio) {
-        currentAudio.addEventListener('loadedmetadata', function () {
-          const durationFormatted = formatTime(currentAudio.duration);
-          durationTime.textContent = durationFormatted;
-        });
-    
-        currentAudio.addEventListener('timeupdate', function () {
-          const currentTime = currentAudio.currentTime;
-          const duration = currentAudio.duration;
-          const elapsed = formatTime(currentTime);
-          const durationFormatted = formatTime(duration);
-          progressBar.value = (currentTime / duration) * 100;
-          elapsedTime.textContent = elapsed;
-          durationTime.textContent = durationFormatted;
-        });
-    
-        currentAudio.addEventListener('ended', function () {
-          isPlaying = false;
-          updateMasterPlayIcon();
-          playNextSong();
-        });
-      }
- }
-    
-
-
-// Function to update volume icon based on volume level
-function updateVolumeIcon(volumeIcon, volumeLevel) {
-    if (volumeLevel === 0) {
-      volumeIcon.classList.remove('fa-volume-up');
-      volumeIcon.classList.remove('fa-volume-down');
-      volumeIcon.classList.add('fa-volume-mute');
-    } else if (volumeLevel < 50) {
-      volumeIcon.classList.remove('fa-volume-up');
-      volumeIcon.classList.add('fa-volume-down');
-      volumeIcon.classList.remove('fa-volume-mute');
+    if (shuffleMode) {
+        // Save current song before shuffling
+        const currentSong = currentSongIndex !== null ? songs[currentSongIndex] : null;
+        
+        // Shuffle songs
+        shuffleSongs();
+        
+        // Find current song in shuffled list
+        if (currentSong) {
+            currentSongIndex = songs.findIndex(song => song.filePath === currentSong.filePath);
+        }
+        
+        shuffleIcon.classList.add('active');
     } else {
-      volumeIcon.classList.add('fa-volume-up');
-      volumeIcon.classList.remove('fa-volume-down');
-      volumeIcon.classList.remove('fa-volume-mute');
+        // Save current song before reverting
+        const currentSongFilePath = currentSongIndex !== null ? songs[currentSongIndex].filePath : null;
+        
+        // Restore original order
+        songs = [...originalSongsOrder].map((song, index) => ({ ...song, index }));
+        
+        // Find current song in original list
+        if (currentSongFilePath) {
+            currentSongIndex = songs.findIndex(song => song.filePath === currentSongFilePath);
+        }
+        
+        shuffleIcon.classList.remove('active');
     }
-  }
-  
-// Function to toggle mute
-function toggleMute() {
-  if (currentAudio.muted) {
-    currentAudio.muted = false;
-  } else {
-    currentAudio.muted = true;
-  }
-  updateVolumeIcon(volumeIcon, currentAudio.muted ? 0 : 50);
+    
+    // Refresh song list in the UI
+    createSongItems();
+    updateSongItemClass(currentSongIndex);
 }
 
-// Function to format time in mm:ss format
+/**
+ * Shuffle songs using Fisher-Yates algorithm
+ */
+function shuffleSongs() {
+    // Create a copy to avoid directly modifying the original
+    const shuffledSongs = [...songs];
+    
+    // Fisher-Yates shuffle
+    for (let i = shuffledSongs.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledSongs[i], shuffledSongs[j]] = [shuffledSongs[j], shuffledSongs[i]];
+    }
+    
+    // Reassign indices
+    songs = shuffledSongs.map((song, index) => ({ ...song, index }));
+}
+
+/**
+ * Toggle repeat mode
+ */
+function toggleRepeatMode() {
+    if (!repeatIcon) return;
+    
+    switch (repeatMode) {
+        case 'none':
+            repeatMode = 'one';
+            repeatIcon.classList.remove('fa-repeat');
+            repeatIcon.classList.add('fa-redo');
+            repeatIcon.classList.add('active');
+            break;
+        case 'one':
+            repeatMode = 'all';
+            repeatIcon.classList.remove('fa-redo');
+            repeatIcon.classList.add('fa-reply-all');
+            repeatIcon.classList.add('active');
+            break;
+        case 'all':
+            repeatMode = 'none';
+            repeatIcon.classList.remove('fa-reply-all', 'fa-redo');
+            repeatIcon.classList.add('fa-repeat');
+            repeatIcon.classList.remove('active');
+            break;
+    }
+}
+
+/**
+ * Toggle mute
+ */
+function toggleMute() {
+    if (!currentAudio || !volumeIcon) return;
+    
+    currentAudio.muted = !currentAudio.muted;
+    updateVolumeIcon(volumeIcon, currentAudio.muted ? 0 : volumeControl.value);
+}
+
+/**
+ * Update volume icon based on level
+ */
+function updateVolumeIcon(volumeIcon, volumeLevel) {
+    if (!volumeIcon) return;
+    
+    // Remove all volume classes
+    volumeIcon.classList.remove('fa-volume-up', 'fa-volume-down', 'fa-volume-mute');
+    
+    // Add the appropriate class
+    if (volumeLevel === 0) {
+        volumeIcon.classList.add('fa-volume-mute');
+    } else if (volumeLevel < 50) {
+        volumeIcon.classList.add('fa-volume-down');
+    } else {
+        volumeIcon.classList.add('fa-volume-up');
+    }
+}
+
+/**
+ * Format time in mm:ss format
+ */
 function formatTime(time) {
+    if (isNaN(time) || time === Infinity) return '0:00';
+    
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
 }
 
+/**
+ * Setup all control event listeners
+ */
+function setupControlEventListeners() {
+    // Master play button
+    if (masterPlayButton) {
+        masterPlayButton.addEventListener('click', function() {
+            if (songs.length === 0) return;
+            
+            // If no song is selected, play the first song
+            if (currentSongIndex === null && songs.length > 0) {
+                playOrPauseSong(songs[0]);
+                return;
+            }
+            
+            if (isPlaying) {
+                pauseAudio();
+            } else {
+                playAudio();
+            }
+        });
+    }
+    
+    // Next button
+    if (nextButton) {
+        nextButton.addEventListener('click', playNextSong);
+    }
+    
+    // Previous button
+    if (previousButton) {
+        previousButton.addEventListener('click', playPreviousSong);
+    }
+    
+    // Shuffle icon
+    if (shuffleIcon) {
+        shuffleIcon.addEventListener('click', toggleShuffleMode);
+    }
+    
+    // Repeat icon
+    if (repeatIcon) {
+        repeatIcon.addEventListener('click', toggleRepeatMode);
+    }
+    
+    // Volume icon (mute/unmute)
+    if (volumeIcon) {
+        volumeIcon.addEventListener('click', toggleMute);
+    }
+    
+    // Progress bar
+    if (progressBar) {
+        progressBar.addEventListener('input', function() {
+            if (!currentAudio || !currentAudio.duration) return;
+            
+            const seekTime = (progressBar.value / 100) * currentAudio.duration;
+            currentAudio.currentTime = seekTime;
+        });
+    }
+    
+    // Volume control
+    if (volumeControl) {
+        // Set initial volume
+        volumeControl.value = 75; // Default volume 75%
+        
+        volumeControl.addEventListener('input', function() {
+            if (!currentAudio) return;
+            
+            volumeControl.classList.add('changing');
+            currentAudio.volume = volumeControl.value / 100;
+            updateVolumeIcon(volumeIcon, volumeControl.value);
+        });
+        
+        volumeControl.addEventListener('mouseup', function() {
+            volumeControl.classList.remove('changing');
+        });
+        
+        volumeControl.addEventListener('touchend', function() {
+            volumeControl.classList.remove('changing');
+        });
+    }
+    
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ignore if user is typing in an input field
+        if (document.activeElement.tagName === 'INPUT' || 
+            document.activeElement.tagName === 'TEXTAREA') {
+            return;
+        }
+        
+        switch (e.key) {
+            case ' ': // Space
+                e.preventDefault(); // Prevent page scroll
+                if (isPlaying) {
+                    pauseAudio();
+                } else {
+                    playAudio();
+                }
+                break;
+                
+            case 'ArrowRight': // Right arrow
+                playNextSong();
+                break;
+                
+            case 'ArrowLeft': // Left arrow
+                playPreviousSong();
+                break;
+                
+            case 'm': // M key
+            case 'M':
+                toggleMute();
+                break;
+        }
+    });
+}
 
-// Call the function to fetch and create song items when the page loads
+// Initialize the player
 window.addEventListener('load', () => {
-    fetchAndCreateSongItems();
-    setupControlEventListeners();
-    showBottomControls();
-    progressBar.value = 0;
+    const albumName = getAlbumNameFromURL();
+    fetchAndCreateSongItems(albumName);
+    
+    // Set initial state for controls
+    if (volumeControl) {
+        volumeControl.value = 75; // Default volume 75%
+    }
+    
+    if (progressBar) {
+        progressBar.value = 0;
+    }
+    
+    // Initial UI state
+    updateMasterPlayIcon();
 });
-
-
